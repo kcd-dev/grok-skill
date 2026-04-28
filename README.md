@@ -1,74 +1,38 @@
-# Grok Skill 配置说明
+# Grok Skill
 
-这个目录是给 Codex 使用的独立 Grok 协作 skill。
+独立的 Grok 协作 skill，给 Codex 用来做架构设计、代码审查、故障判断和第二意见。
 
-## 需要配置的环境变量
+## 入口文档
 
-至少配置下面两个变量：
+- 中文说明：[`README_ZH.md`](./README_ZH.md)
+- English: [`README_EN.md`](./README_EN.md)
+
+## 快速开始
+
+先准备环境变量：
 
 ```bash
 export GROK_API_KEY="你的 Grok API Key"
 export GROK_BASE_URL="https://grok74.tap365.org/v1"
-```
-
-可选再补两个变量：
-
-```bash
 export GROK_MODEL="grok-4.1-fast"
 export GROK_CHAT_PATH="/v1/chat/completions"
 ```
 
-## 推荐配置方式
-
-### 方式 1：当前 shell 临时导出
+然后做一次最小自检：
 
 ```bash
-export GROK_API_KEY="你的 Grok API Key"
-export GROK_BASE_URL="https://grok74.tap365.org/v1"
+./scripts/smoke-grok-config.sh
 ```
 
-适合临时测试。
+## 现有文件
 
-### 方式 2：写入本地 env 文件
+- `SKILL.md`：Codex 触发与协作规则
+- `references/transport.md`：transport 解析和配置约定
+- `scripts/resolve-grok-transport.sh`：当前机器会走哪条 Grok 路径
+- `scripts/smoke-grok-config.sh`：最小配置自检
 
-创建一个本地文件，例如 `~/.config/grok/env`：
+## 提醒
 
-```bash
-GROK_API_KEY=你的GrokAPIKey
-GROK_BASE_URL=https://grok74.tap365.org/v1
-GROK_MODEL=grok-4.1-fast
-GROK_CHAT_PATH=/v1/chat/completions
-```
-
-然后让 shell 读取：
-
-```bash
-set -a
-source ~/.config/grok/env
-set +a
-```
-
-## 入口优先级
-
-这个 skill 会按下面顺序找 Grok 入口：
-
-1. 用户显式配置的环境变量
-2. 本机是否存在 `turinggrok`
-3. 本机是否存在 `grok-cli`
-4. 直接 HTTP 调用
-
-如果 `turinggrok` 存在，就优先尝试它；不存在时自动回退，不影响工作。
-
-## 快速检测
-
-运行下面脚本看当前机器会走哪条路：
-
-```bash
-/Users/houzi/.codex/skills/grok-skill/scripts/resolve-grok-transport.sh
-```
-
-## 注意事项
-
-- 不要把真实 key 写进公开仓库
-- 不要把 token、cookie、密码写进 skill 文档
-- 如果你的网关路径不是 `/v1/chat/completions`，就改 `GROK_CHAT_PATH`
+- 不要把真实 key、token、cookie、密码写进仓库
+- 如果你的网关不是 `/v1/chat/completions`，就改 `GROK_CHAT_PATH`
+- 这个 skill 默认独立于 `turinggrok`，但会在本机安装且可用时优先使用它
