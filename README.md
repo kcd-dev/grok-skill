@@ -45,6 +45,60 @@ curl -sS https://sub-lb.tap365.org/v1/images/generations \
   }'
 ```
 
+## 在 Codex 中如何使用
+
+安装到 `~/.codex/skills/grok-skill` 后，重启 Codex。后续只要任务里出现“让 Grok 评审 / 给 Grok 第二意见 / 用 Grok 做架构判断 / 检查 turinggrok 是否可用”这类意图，Codex 会按 `SKILL.md` 的规则先解析 transport，再调用 Grok。
+
+建议按下面顺序排查和使用。
+
+### 1. 查看当前会走哪条 transport
+
+```bash
+~/.codex/skills/grok-skill/scripts/resolve-grok-transport.sh
+```
+
+典型输出会包含：
+
+```text
+transport=turinggrok
+loaded_env_file=/Users/houzi/.config/grok/env
+GROK_BASE_URL=https://sub-lb.tap365.org
+GROK_MODEL=grok-4.1-fast
+GROK_CHAT_PATH=/v1/chat/completions
+```
+
+### 2. 做配置自检
+
+```bash
+~/.codex/skills/grok-skill/scripts/smoke-grok-config.sh
+```
+
+看到 `结果: 通过` 只表示配置完整；真正业务可用还要跑一次 chat 或 image API。
+
+### 3. 做一次真实文本调用
+
+```bash
+curl -sS https://sub-lb.tap365.org/v1/chat/completions \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-4.1-fast",
+    "messages": [
+      {"role": "user", "content": "你是 Grok 第二意见助手。请只用一句话回答：Grok skill 调用成功，并说明你的用途。"}
+    ],
+    "stream": false
+  }'
+```
+
+验收口径：
+
+- HTTP 状态码为 `200`
+- `model` 为 `grok-4.1-fast`
+- `choices[0].finish_reason` 为 `stop`
+- `choices[0].message.content` 有有效回答
+
+注意：部分返回可能包含 `<think>...</think>` 段。内部排障可以保留，面向用户展示时建议在调用层过滤掉该段。
+
 ## 现有文件
 
 - `SKILL.md`：Codex 触发与协作规则
