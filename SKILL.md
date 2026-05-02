@@ -1,8 +1,8 @@
 ---
 name: grok-skill
 description: This skill should be used when the user wants Codex to consult Grok for architecture review, code review, second opinions, or research, and when Grok transport must be resolved from local config or environment with an optional turinggrok fallback if the binary is installed and usable.
-version: 0.1.0
-date: 2026-04-29
+version: 0.2.0
+date: 2026-05-02
 ---
 
 # Grok + Codex 协作
@@ -47,6 +47,7 @@ date: 2026-04-29
 
 优先读取这些来源：
 
+- 当前 shell 里的 `SUBLB_API_KEY`
 - 当前 shell 里的 `GROK_API_KEY`
 - 当前 shell 里的 `GROK_BASE_URL`
 - 当前 shell 里的 `GROK_MODEL`
@@ -55,6 +56,14 @@ date: 2026-04-29
 - `~/.grok.env`
 - 其他项目里显式约定的 Grok env 文件
 - `~/.codex/config.toml` 里的 Grok 相关提示
+
+如果用户是对外公开示例或面向 SubLB 用户说明，默认优先使用：
+
+- `SUBLB_API_KEY`
+- `https://sub-lb.tap365.org/v1/chat/completions`
+- `https://sub-lb.tap365.org/v1/images/generations`
+
+如果是本机 transport / 内部兼容层，再继续沿用 `GROK_API_KEY`、`GROK_BASE_URL`、`GROK_MODEL`、`GROK_CHAT_PATH` 这套变量。
 
 如果用户已经把 Grok 接到某个 OpenAI-compatible 网关，不要重新发明新的 key 命名；直接复用现有约定。
 
@@ -113,6 +122,8 @@ date: 2026-04-29
 
 常见请求路径是 `POST /v1/chat/completions`，但如果用户的网关约定的是别的路径，比如 `/v1/chat/complete`，就以配置为准，不要写死。
 
+如果当前任务是在写对外文档、README、公告或用户示例，默认不要暴露内部上游域名；优先写公开入口 `https://sub-lb.tap365.org/v1/...`。
+
 ## 输出与回写
 
 在最终答复里固定写清楚：
@@ -143,3 +154,4 @@ date: 2026-04-29
 - 不要把 Grok 输出当成自动正确答案。
 - 不要把大段无关上下文一起喂给 Grok。
 - 不要在没有配置的情况下臆造 base URL 或 key。
+- 对外图片接口示例优先使用 `response_format=b64_json`，避免把底层文件域名直接暴露给用户。
