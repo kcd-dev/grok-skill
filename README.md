@@ -12,16 +12,37 @@
 先准备环境变量：
 
 ```bash
-export GROK_API_KEY="你的 Grok API Key"
-export GROK_BASE_URL="https://grok74.tap365.org/v1"
-export GROK_MODEL="grok-4.1-fast"
-export GROK_CHAT_PATH="/v1/chat/completions"
+export SUBLB_API_KEY="你的 SubLB API Key"
 ```
 
-然后做一次最小自检：
+然后直接按公开调用方式做最小自检：
 
 ```bash
-./scripts/smoke-grok-config.sh
+curl -sS https://sub-lb.tap365.org/v1/chat/completions \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-4.1-fast",
+    "messages": [
+      {"role": "user", "content": "只回复 OK"}
+    ],
+    "stream": false
+  }'
+```
+
+图片生成调用示例：
+
+```bash
+curl -sS https://sub-lb.tap365.org/v1/images/generations \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-1.0",
+    "prompt": "一只橘猫坐在赛博朋克城市的窗边，电影感，高质量",
+    "n": 1,
+    "size": "1024x1024",
+    "response_format": "b64_json"
+  }'
 ```
 
 ## 现有文件
@@ -34,5 +55,6 @@ export GROK_CHAT_PATH="/v1/chat/completions"
 ## 提醒
 
 - 不要把真实 key、token、cookie、密码写进仓库
-- 如果你的网关不是 `/v1/chat/completions`，就改 `GROK_CHAT_PATH`
+- 对外文档和示例统一使用公开入口 `https://sub-lb.tap365.org/v1`
+- 图片对外示例优先用 `response_format=b64_json`，避免把底层文件域名直接暴露给用户
 - 这个 skill 默认独立于 `turinggrok`，但会在本机安装且可用时优先使用它

@@ -30,6 +30,21 @@ load_env_file() {
   return 1
 }
 
+normalize_public_env() {
+  if [[ -n "${SUBLB_API_KEY:-}" && -z "${GROK_API_KEY:-}" ]]; then
+    GROK_API_KEY="${SUBLB_API_KEY}"
+  fi
+  if [[ -z "${GROK_BASE_URL:-}" ]]; then
+    GROK_BASE_URL="https://sub-lb.tap365.org"
+  fi
+  if [[ -z "${GROK_MODEL:-}" ]]; then
+    GROK_MODEL="grok-4.1-fast"
+  fi
+  if [[ -z "${GROK_CHAT_PATH:-}" ]]; then
+    GROK_CHAT_PATH="/v1/chat/completions"
+  fi
+}
+
 for candidate in \
   "${GROK_ENV_FILE:-}" \
   "$HOME/.config/grok/env" \
@@ -42,6 +57,8 @@ do
     break
   fi
 done
+
+normalize_public_env
 
 transport="direct-http"
 reason="fallback"
@@ -59,6 +76,7 @@ say "reason=${reason}"
 say "loaded_env_file=${loaded_env_file:-unset}"
 say "grok_cli=$(command -v grok-cli 2>/dev/null || true)"
 say "turinggrok=$(command -v turinggrok 2>/dev/null || true)"
+say "SUBLB_API_KEY=$(mask "${SUBLB_API_KEY:-}")"
 say "GROK_API_KEY=$(mask "${GROK_API_KEY:-}")"
 say "GROK_BASE_URL=${GROK_BASE_URL:-unset}"
 say "GROK_MODEL=${GROK_MODEL:-unset}"

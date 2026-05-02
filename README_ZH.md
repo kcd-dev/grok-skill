@@ -12,29 +12,48 @@
 
 ## 需要配置的环境变量
 
-至少配置下面两个变量：
+至少配置下面一个变量：
 
 ```bash
-export GROK_API_KEY="你的 Grok API Key"
-export GROK_BASE_URL="https://grok74.tap365.org/v1"
+export SUBLB_API_KEY="你的 SubLB API Key"
 ```
 
-建议再补两个变量：
+然后直接做公开接口自检：
 
 ```bash
-export GROK_MODEL="grok-4.1-fast"
-export GROK_CHAT_PATH="/v1/chat/completions"
+curl -sS https://sub-lb.tap365.org/v1/chat/completions \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-4.1-fast",
+    "messages": [
+      {"role": "user", "content": "只回复 OK"}
+    ],
+    "stream": false
+  }'
 ```
 
-如果你的网关实际暴露的是 `/v1/chat/complete`，就把它写进 `GROK_CHAT_PATH`，不要在 skill 里写死。
+图片生成示例：
+
+```bash
+curl -sS https://sub-lb.tap365.org/v1/images/generations \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-1.0",
+    "prompt": "一只橘猫坐在赛博朋克城市的窗边，电影感，高质量",
+    "n": 1,
+    "size": "1024x1024",
+    "response_format": "b64_json"
+  }'
+```
 
 ## 推荐配置方式
 
 ### 方式 1：当前 shell 临时导出
 
 ```bash
-export GROK_API_KEY="你的 Grok API Key"
-export GROK_BASE_URL="https://grok74.tap365.org/v1"
+export SUBLB_API_KEY="你的 SubLB API Key"
 ```
 
 适合临时测试。
@@ -44,10 +63,7 @@ export GROK_BASE_URL="https://grok74.tap365.org/v1"
 创建一个本地文件，例如 `~/.config/grok/env`：
 
 ```bash
-GROK_API_KEY=你的GrokAPIKey
-GROK_BASE_URL=https://grok74.tap365.org/v1
-GROK_MODEL=grok-4.1-fast
-GROK_CHAT_PATH=/v1/chat/completions
+SUBLB_API_KEY=你的SubLBAPIKey
 ```
 
 然后让 shell 读取：
@@ -87,5 +103,6 @@ set +a
 
 - 不要把真实 key 写进公开仓库
 - 不要把 token、cookie、密码写进 skill 文档
-- 如果你的网关路径不是 `/v1/chat/completions`，就改 `GROK_CHAT_PATH`
+- 对外文档和示例统一使用公开入口 `https://sub-lb.tap365.org/v1`
+- 图片对外示例优先用 `response_format=b64_json`，避免把底层文件域名直接暴露给用户
 - `turinggrok` 只是优先路径，不是唯一入口

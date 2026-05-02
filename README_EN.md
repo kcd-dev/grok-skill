@@ -12,29 +12,48 @@ Its purpose is not to hard-bind Grok to a single wrapper, but to use Grok as a s
 
 ## Required environment variables
 
-At minimum, set these two variables:
+At minimum, set this one variable:
 
 ```bash
-export GROK_API_KEY="your Grok API key"
-export GROK_BASE_URL="https://grok74.tap365.org/v1"
+export SUBLB_API_KEY="your SubLB API key"
 ```
 
-Recommended optional variables:
+Then run a public chat smoke call:
 
 ```bash
-export GROK_MODEL="grok-4.1-fast"
-export GROK_CHAT_PATH="/v1/chat/completions"
+curl -sS https://sub-lb.tap365.org/v1/chat/completions \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-4.1-fast",
+    "messages": [
+      {"role": "user", "content": "Reply with OK only"}
+    ],
+    "stream": false
+  }'
 ```
 
-If your gateway exposes `/v1/chat/complete` instead, put that value into `GROK_CHAT_PATH`. Do not hardcode it in the skill.
+Image generation example:
+
+```bash
+curl -sS https://sub-lb.tap365.org/v1/images/generations \
+  -H "Authorization: Bearer $SUBLB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-1.0",
+    "prompt": "An orange cat sitting by a cyberpunk city window, cinematic, high quality",
+    "n": 1,
+    "size": "1024x1024",
+    "response_format": "b64_json"
+  }'
+```
 
 ## Recommended setup
 
 ### Option 1: temporary shell exports
 
 ```bash
-export GROK_API_KEY="your Grok API key"
-export GROK_BASE_URL="https://grok74.tap365.org/v1"
+export SUBLB_API_KEY="your SubLB API key"
 ```
 
 Useful for ad-hoc tests.
@@ -44,10 +63,7 @@ Useful for ad-hoc tests.
 Create a local file such as `~/.config/grok/env`:
 
 ```bash
-GROK_API_KEY=yourGrokAPIKey
-GROK_BASE_URL=https://grok74.tap365.org/v1
-GROK_MODEL=grok-4.1-fast
-GROK_CHAT_PATH=/v1/chat/completions
+SUBLB_API_KEY=yourSubLBAPIKey
 ```
 
 Then load it in your shell:
@@ -87,5 +103,6 @@ Run a minimal config smoke test:
 
 - Never commit real keys to a public repository
 - Never put tokens, cookies, or passwords into the skill docs
-- If your gateway path is not `/v1/chat/completions`, adjust `GROK_CHAT_PATH`
+- Use the public entry `https://sub-lb.tap365.org/v1` in outward-facing docs and examples
+- Prefer `response_format=b64_json` for outward-facing image examples so the backend file host is not exposed to users
 - `turinggrok` is an optional preferred path, not the only supported path

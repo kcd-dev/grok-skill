@@ -13,19 +13,21 @@
 
 ## 环境变量
 
-建议至少准备这些变量：
+如果要对外给用户示例，优先只暴露公开入口所需变量：
+
+- `SUBLB_API_KEY`
+
+公开示例入口：
+
+- `https://sub-lb.tap365.org/v1/chat/completions`
+- `https://sub-lb.tap365.org/v1/images/generations`
+
+如果是内部实现或本机自定义 transport，再按实际环境补充：
 
 - `GROK_API_KEY`
 - `GROK_BASE_URL`
 - `GROK_MODEL`
 - `GROK_CHAT_PATH`
-
-建议值：
-
-- `GROK_BASE_URL=https://grok74.tap365.org/v1`
-- `GROK_CHAT_PATH=/v1/chat/completions`
-
-如果用户的网关或兼容层暴露的是其他路径，比如 `/v1/chat/complete`，就把它写进 `GROK_CHAT_PATH`，不要在 skill 里写死。
 
 ## 配置文件建议
 
@@ -38,20 +40,31 @@
 
 ## 最小请求形态
 
-通用 OpenAI-compatible 文本请求通常长这样：
+公开聊天请求示例：
 
 ```json
 {
   "model": "grok-4.1-fast",
-  "stream": false,
   "messages": [
-    {"role": "system", "content": "你是资深架构审查助手。"},
-    {"role": "user", "content": "请给出结论、风险和推荐方案。"}
-  ]
+    {"role": "user", "content": "只回复 OK"}
+  ],
+  "stream": false
 }
 ```
 
-如果本地工具层对字段名有额外约定，以该工具约定为准，不要混写。
+公开图片请求示例：
+
+```json
+{
+  "model": "grok-imagine-1.0",
+  "prompt": "一只橘猫坐在赛博朋克城市的窗边，电影感，高质量",
+  "n": 1,
+  "size": "1024x1024",
+  "response_format": "b64_json"
+}
+```
+
+如果本地工具层对字段名、路径或上游有额外约定，以内部配置为准，但不要把内部上游域名写进对外文档。对外图片示例优先使用 `b64_json`，避免默认 `url` 直接暴露底层文件域名。
 
 ## 失败判定
 
